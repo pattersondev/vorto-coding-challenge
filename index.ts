@@ -27,27 +27,21 @@ function calculateDistance(point1: { x: number; y: number }, point2: { x: number
  * https://www.youtube.com/watch?v=bC7o8P_Ste4
  */
 function runVRP(loads: Load[]): Driver[] {
-    /**
-     * I know the issue with this function is that I am setting the length of the
-     * Drivers array to be the same length as the loads array leading to it always
-     * being a 1:1 ratio but I don't really know how to fix it.
-     * I think it might have to be recursive to work? I don't really know, I know the
-     * Drivers array length has to be dynamic but I can't figure out the right way to do it.
-     */
-
-    const drivers: Driver[] = Array.from({ length: loads.length }, (_, index) => ({
+    const drivers: Driver[] = Array.from({ length: 1 }, (_, index) => ({
         id: index + 1,
         schedule: [],
     }));
 
     // Was used for testing.
     let totalCost = 0;
+    let index = 0;
 
-    for (const load of loads) {
+    for (const driver of drivers) {
         let closestDriver: Driver | undefined;
         let minDistance = Number.MAX_SAFE_INTEGER;
         let totalDriveTime = 0;
-        for (const driver of drivers) {
+        index++;
+        for (const load of loads) {
             totalDriveTime =
                 driver.schedule.reduce(sum => sum + calculateDistance(load.pickUp, load.dropOff), 0) +
                 calculateDistance({ x: 0, y: 0 }, load.pickUp) +
@@ -56,15 +50,17 @@ function runVRP(loads: Load[]): Driver[] {
             if (totalDriveTime < 12 * 60 && totalDriveTime < minDistance) {
                 closestDriver = driver;
                 minDistance = totalDriveTime;
+                if (closestDriver) {
+                    closestDriver.schedule.push(load.id);
+                    loads.splice(loads.indexOf(load), 1);
+                    totalCost += 500 + totalDriveTime;
+                }
             }
         }
-
-        if (closestDriver) {
-            closestDriver.schedule.push(load.id);
-            totalCost += 500 + totalDriveTime;
+        if (loads.length > 0) {
+            drivers.push({ id: index, schedule: [] });
         }
     }
-
     return drivers;
 }
 
