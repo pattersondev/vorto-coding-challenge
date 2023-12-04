@@ -1,9 +1,5 @@
 import fs from 'fs';
 
-//!! All references for total costs were purely for my own testing purposes.
-
-let totalCost = 0;
-
 interface Load {
     id: number;
     pickUp: { x: number; y: number };
@@ -30,12 +26,22 @@ function calculateDistance(point1: { x: number; y: number }, point2: { x: number
  * https://brilliant.org/wiki/greedy-algorithm/#:~:text=A%20greedy%20algorithm%20is%20a,to%20solve%20the%20entire%20problem.
  * https://www.youtube.com/watch?v=bC7o8P_Ste4
  */
-function runVRP(loads: Load[], numberOfDrivers: number): Driver[] {
+function runVRP(loads: Load[]): Driver[] {
+    /**
+     * I know the issue with this function is that I am setting the length of the
+     * Drivers array to be the same length as the loads array leading to it always
+     * being a 1:1 ratio but I don't really know how to fix it.
+     * I think it might have to be recursive to work? I don't really know, I know the
+     * Drivers array length has to be dynamic but I can't figure out the right way to do it.
+     */
 
-    const drivers: Driver[] = Array.from({ length: numberOfDrivers }, (_, index) => ({
+    const drivers: Driver[] = Array.from({ length: loads.length }, (_, index) => ({
         id: index + 1,
         schedule: [],
     }));
+
+    // Was used for testing.
+    let totalCost = 0;
 
     for (const load of loads) {
         let closestDriver: Driver | undefined;
@@ -66,7 +72,7 @@ function runVRP(loads: Load[], numberOfDrivers: number): Driver[] {
  * Resources used to create the below function.
  * https://www.rexegg.com/regex-quickstart.html
  */
-function main(filePath: string, numberOfDrivers: number): void {
+function main(filePath: string): void {
     const fileContent = fs.readFileSync(filePath, 'utf-8');
     const lines = fileContent.trim().split('\n');
 
@@ -96,16 +102,12 @@ function main(filePath: string, numberOfDrivers: number): void {
         });
     }
 
-    const solution = runVRP(loads, numberOfDrivers);
+    const solution = runVRP(loads);
 
     for (const driver of solution) {
         console.log(`[${driver.schedule.join(',')}]`);
     }
-
-    //!! This was just used for my own testing purposes.
-    //console.log(`Total Cost: ${totalCost.toFixed(2)}`);
 }
 
 const inputFilePath = process.argv[2];
-const numberOfDrivers = parseInt(process.argv[3]);
-main(inputFilePath, numberOfDrivers);
+main(inputFilePath);
