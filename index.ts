@@ -42,10 +42,11 @@ function runVRP(loads: Load[]): Driver[] {
         let totalDriveTime = 0;
         index++;
         for (const load of loads) {
-            totalDriveTime =
-                driver.schedule.reduce(sum => sum + calculateDistance(load.pickUp, load.dropOff), 0) +
-                calculateDistance({ x: 0, y: 0 }, load.pickUp) +
-                calculateDistance(load.pickUp, load.dropOff);
+            if (driver.schedule.length !== 0) {
+                totalDriveTime =
+                    driver.schedule.reduce(sum => sum + calculateDistance({ x: 0, y: 0 }, load.pickUp), 0) +
+                    calculateDistance(load.pickUp, load.dropOff) + calculateDistance(load.dropOff, { x: 0, y: 0 });
+            }
 
             if (totalDriveTime < 12 * 60 && totalDriveTime < minDistance) {
                 closestDriver = driver;
