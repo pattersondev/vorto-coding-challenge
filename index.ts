@@ -37,31 +37,30 @@ function runVRP(loads: Load[]): Driver[] {
     let index = 0;
 
     for (const driver of drivers) {
-        let closestDriver: Driver | undefined;
-        let minDistance = Number.MAX_SAFE_INTEGER;
+        let depot = { x: 0, y: 0 };
         let totalDriveTime = 0;
         index++;
-        for (const load of loads) {
-            if (driver.schedule.length !== 0) {
-                totalDriveTime =
-                    driver.schedule.reduce(sum => sum + calculateDistance({ x: 0, y: 0 }, load.pickUp), 0) +
-                    calculateDistance(load.pickUp, load.dropOff) + calculateDistance(load.dropOff, { x: 0, y: 0 });
-            }
 
-            if (totalDriveTime < 12 * 60 && totalDriveTime < minDistance) {
-                closestDriver = driver;
-                minDistance = totalDriveTime;
-                if (closestDriver) {
-                    closestDriver.schedule.push(load.id);
-                    loads.splice(loads.indexOf(load), 1);
-                    totalCost += 500 + totalDriveTime;
-                }
+        for (let i = 0; i < loads.length; i++) {
+            const load = loads[i];
+            const currDriveTime = calculateDistance(depot, load.pickUp) + calculateDistance(load.pickUp, load.dropOff);
+            const returnHome = totalDriveTime + currDriveTime + calculateDistance(load.dropOff, { x: 0, y: 0 });
+
+            if (returnHome < 12 * 60) {
+                driver.schedule.push(load.id);
+                totalDriveTime += currDriveTime;
+                depot = load.dropOff;
+                loads.splice(i, 1);
+                i--;
+                totalCost += 500 + totalDriveTime;
             }
         }
+
         if (loads.length > 0) {
             drivers.push({ id: index, schedule: [] });
         }
     }
+
     return drivers;
 }
 
